@@ -235,14 +235,14 @@
                 console.warn("No se pudo verificar estado de entrega:", eSub);
               }
 
-              // CONVERSIÓN CORRECTA CONSIDERANDO LA ZONA HORARIA UTC DE CLASSROOM
+              // CONSTRUCCIÓN DE FECHA EN HORA LOCAL
               let fechaObj = null;
               if (fechasManuales[tarea.id]) {
                 const partes = fechasManuales[tarea.id].split('-');
                 fechaObj = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]), 23, 59, 59);
               } else if (tarea.dueDate) {
                 const year = tarea.dueDate.year;
-                const month = tarea.dueDate.month - 1; // Mes base 0
+                const month = tarea.dueDate.month - 1;
                 const day = tarea.dueDate.day;
                 
                 let hour = 23, minute = 59;
@@ -251,8 +251,8 @@
                   minute = tarea.dueTime.minutes !== undefined ? tarea.dueTime.minutes : 59;
                 }
                 
-                // Google Classroom devuelve las fechas en UTC
-                fechaObj = new Date(Date.UTC(year, month, day, hour, minute, 59));
+                // Objeto de fecha local para que coincida exactamente con la fecha de Colombia
+                fechaObj = new Date(year, month, day, hour, minute, 59);
               }
 
               return {
@@ -316,10 +316,10 @@
     renderizarTablero();
   }
 
-  // Formateador visual sin desfase de zona horaria
+  // Formateador visual que lee estrictamente el día/mes local de la máquina
   function formatearFechaVisual(fecha) {
     const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-    return `${fecha.getUTCDate()} ${meses[fecha.getUTCMonth()]}`;
+    return `${fecha.getDate()} ${meses[fecha.getMonth()]}`;
   }
 
   function renderizarTablero() {
@@ -338,10 +338,10 @@
     let countSinFecha = 0, countProximas = 0, countManana = 0, countHecho = 0;
     let alertasRadar = [];
 
-    // Tiempos en UTC para hacer comparaciones 1:1 exactas con Google Classroom
+    // Cálculo exacto en hora local
     const ahora = new Date();
-    const hoyInicioUTC = Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth(), ahora.getUTCDate(), 0, 0, 0);
-    const mananaFinUTC = Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth(), ahora.getUTCDate() + 1, 23, 59, 59);
+    const hoyInicio = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), 0, 0, 0).getTime();
+    const mananaFin = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate() + 1, 23, 59, 59).getTime();
 
     const tareasActivas = tareasReales.filter(t => !tareasDescartadas.includes(t.id));
 
@@ -356,10 +356,10 @@
       } else if (!tarea.fechaObjeto) {
         arrSinFecha.push(tarea);
       } else {
-        const tiempoTareaUTC = tarea.fechaObjeto.getTime();
+        const tiempoTarea = tarea.fechaObjeto.getTime();
 
-        if (tiempoTareaUTC < hoyInicioUTC) {
-          // Tarea Vencida
+        if (tiempoTarea < hoyInicio) {
+          // Tarea Vencida / Entrega tardía
           arrSinFecha.push({ ...tarea, esVencida: true });
           alertasRadar.push({
             id: tarea.id,
@@ -368,7 +368,7 @@
             materia: tarea.materia,
             fecha: tarea.fechaObjeto
           });
-        } else if (tiempoTareaUTC <= mananaFinUTC) {
+        } else if (tiempoTarea <= mananaFin) {
           // Tarea para Hoy o Mañana
           arrManana.push(tarea);
           alertasRadar.push({
@@ -388,7 +388,7 @@
     arrProximas.sort((a, b) => a.fechaObjeto - b.fechaObjeto);
     arrManana.sort((a, b) => a.fechaObjeto - b.fechaObjeto);
 
-    // 1. Renderizar Sin Fecha / Vencidas
+    // 1. Renderizar Sin Fecha / Vencidas (CON opción de descartar)
     arrSinFecha.forEach(tarea => {
       const card = document.createElement('div');
       card.className = 'card';
@@ -416,7 +416,7 @@
       countSinFecha++;
     });
 
-    // 2. Renderizar Próximas
+    // 2. Renderizar Próximas (SIN opción de descartar)
     arrProximas.forEach(tarea => {
       const card = document.createElement('div');
       card.className = 'card';
@@ -425,13 +425,12 @@
         <span class="card-materia" style="background-color: ${tarea.color}">${tarea.materia}</span>
         <div class="card-title">${tarea.titulo}</div>
         <div class="card-meta">📅 Entrega: ${fechaTexto}</div>
-        <button class="btn-descartar" onclick="descartarTarea('${tarea.id}')">🗑️ Descartar</button>
       `;
       cProximas.appendChild(card);
       countProximas++;
     });
 
-    // 3. Renderizar Para Mañana / Hoy
+    // 3. Renderizar Para Mañana / Hoy (SIN opción de descartar)
     arrManana.forEach(tarea => {
       const card = document.createElement('div');
       card.className = 'card';
@@ -440,7 +439,6 @@
         <span class="card-materia" style="background-color: ${tarea.color}">${tarea.materia}</span>
         <div class="card-title">${tarea.titulo}</div>
         <div class="card-meta" style="color: #e67e22; font-weight:700;">🔥 Entrega: ${fechaTexto}</div>
-        <button class="btn-descartar" onclick="descartarTarea('${tarea.id}')">🗑️ Descartar</button>
       `;
       cManana.appendChild(card);
       countManana++;
@@ -464,6 +462,7 @@
     document.getElementById('count-manana').innerText = countManana;
     document.getElementById('count-hecho').innerText = countHecho;
 
+    // Panel de Alertas
     if (alertasRadar.length > 0) {
       alertasRadar.forEach(alerta => {
         const item = document.createElement('div');
@@ -471,18 +470,19 @@
         const fechaTxt = formatearFechaVisual(alerta.fecha);
         
         if (alerta.tipo === 'VENCIDA') {
+          // Permite descartar solo si está Vencida / Entrega tardía
           item.innerHTML = `
-            <div class="alert-item-title">⚠️ Sin entregar / Vencida</div>
+            <div class="alert-item-title">⚠️️ Sin entregar / Vencida</div>
             <div class="alert-item-desc"><strong>${alerta.materia}</strong>: ${alerta.titulo} (${fechaTxt})</div>
             <button class="btn-descartar" onclick="descartarTarea('${alerta.id}')">🗑️ Descartar</button>
           `;
         } else {
+          // NO tiene botón de descartar si es Entrega Inminente (Hoy / Mañana)
           item.style.borderLeftColor = '#e67e22';
           item.style.background = '#fffaf0';
           item.innerHTML = `
             <div class="alert-item-title" style="color:#d35400;">🔥 Entrega inminente</div>
             <div class="alert-item-desc"><strong>${alerta.materia}</strong>: ${alerta.titulo} (${fechaTxt})</div>
-            <button class="btn-descartar" onclick="descartarTarea('${alerta.id}')">🗑️ Descartar</button>
           `;
         }
         cAlertas.appendChild(item);
