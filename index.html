@@ -8,49 +8,84 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-    body { background-color: #f4f7f6; color: #333; padding: 25px; }
+    :root {
+      --bg-body: #f4f7f6;
+      --text-main: #333333;
+      --text-header: #2c3e50;
+      --bg-card: #ffffff;
+      --border-card: #e2e8f0;
+      --bg-column: #ebedf0;
+      --bg-panel: #ffffff;
+      --bg-box-assign: #f8fafc;
+      --border-box-assign: #cbd5e0;
+      --text-sub: #4a5568;
+    }
+
+    body.dark-mode {
+      --bg-body: #121212;
+      --text-main: #e0e0e0;
+      --text-header: #ecf0f1;
+      --bg-card: #1e1e1e;
+      --border-card: #333333;
+      --bg-column: #252525;
+      --bg-panel: #1e1e1e;
+      --bg-box-assign: #2a2a2a;
+      --border-box-assign: #444444;
+      --text-sub: #a0aec0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; transition: background-color 0.3s, color 0.3s; }
+    body { background-color: var(--bg-body); color: var(--text-main); padding: 25px; }
     
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-    h1 { font-size: 1.8rem; color: #2c3e50; font-weight: 700; }
+    h1 { font-size: 1.8rem; color: var(--text-header); font-weight: 700; }
     .header-btns { display: flex; gap: 10px; align-items: center; }
     .sync-status { font-size: 0.85rem; font-weight: 600; color: #27ae60; background: #e8f8f5; padding: 6px 12px; border-radius: 6px; border: 1px solid #a3e4d7; }
-    .btn-sync { background-color: #4285f4; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: background 0.2s; }
+    
+    .btn-sync { background-color: #4285f4; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
     .btn-sync:hover { background-color: #3367d6; }
+
+    .btn-darkmode { background-color: #34495e; color: white; border: none; padding: 10px 14px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+    .btn-darkmode:hover { background-color: #2c3e50; }
 
     /* Estructura Principal */
     .main-container { display: flex; gap: 20px; align-items: flex-start; }
     
     /* Tablero Kanban */
     .kanban-board { display: flex; gap: 20px; flex: 1; overflow-x: auto; padding-bottom: 15px; }
-    .column { background: #ebedf0; border-radius: 14px; width: 330px; min-width: 320px; flex-shrink: 0; padding: 16px; display: flex; flex-direction: column; height: calc(100vh - 130px); }
+    .column { background: var(--bg-column); border-radius: 14px; width: 330px; min-width: 320px; flex-shrink: 0; padding: 16px; display: flex; flex-direction: column; height: calc(100vh - 130px); }
     .column-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
     .count-badge { background: #d0d7de; color: #24292f; border-radius: 12px; padding: 2px 10px; font-size: 0.85rem; font-weight: 600; }
     .cards-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding-right: 4px; }
 
     /* Panel Lateral de Alertas & Radar */
-    .alert-panel { width: 340px; min-width: 320px; background: white; border-radius: 14px; padding: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); display: flex; flex-direction: column; gap: 15px; height: calc(100vh - 130px); overflow-y: auto; }
+    .alert-panel { width: 340px; min-width: 320px; background: var(--bg-panel); border-radius: 14px; padding: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); display: flex; flex-direction: column; gap: 15px; height: calc(100vh - 130px); overflow-y: auto; }
     .panel-header { font-size: 1.1rem; font-weight: 700; color: #c0392b; border-bottom: 2px solid #fadbd8; padding-bottom: 10px; display: flex; align-items: center; gap: 8px; }
     
     .alert-item { background: #fff5f5; border-left: 4px solid #e74c3c; border-radius: 8px; padding: 12px; font-size: 0.88rem; display: flex; flex-direction: column; gap: 8px; }
-    .alert-item-title { font-weight: 700; color: #922b21; }
-    .alert-item-desc { color: #5a5a5a; font-size: 0.85rem; line-height: 1.3; }
+    body.dark-mode .alert-item { background: #2c1a1a; }
+    .alert-item-title { font-weight: 700; color: #e74c3c; }
+    .alert-item-desc { color: var(--text-sub); font-size: 0.85rem; line-height: 1.3; }
 
-    .radar-stats { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; font-size: 0.85rem; }
-    .radar-stats-title { font-weight: 700; color: #2d3748; margin-bottom: 6px; }
+    .radar-stats { background: var(--bg-box-assign); border: 1px solid var(--border-box-assign); border-radius: 8px; padding: 12px; font-size: 0.85rem; }
+    .radar-stats-title { font-weight: 700; color: var(--text-main); margin-bottom: 6px; }
 
     /* Estilos de Tarjeta Kanban */
-    .card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 3px 8px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px; position: relative; }
+    .card { background: var(--bg-card); border-radius: 12px; padding: 16px; box-shadow: 0 3px 8px rgba(0,0,0,0.06); border: 1px solid var(--border-card); display: flex; flex-direction: column; gap: 10px; position: relative; }
     .card-materia { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; color: white; display: inline-block; align-self: flex-start; }
-    .card-title { font-size: 1.05rem; font-weight: 600; color: #1a202c; line-height: 1.35; }
-    .card-meta { font-size: 0.88rem; color: #4a5568; font-weight: 500; }
+    .card-title { font-size: 1.05rem; font-weight: 600; color: var(--text-main); line-height: 1.35; }
+    .card-meta { font-size: 0.88rem; color: var(--text-sub); font-weight: 500; }
     .card-vencida { color: #e74c3c; font-weight: 700; }
 
+    /* Botón directo a Classroom */
+    .btn-classroom-link { display: inline-flex; align-items: center; gap: 5px; font-size: 0.8rem; font-weight: 600; color: #3182ce; text-decoration: none; margin-top: 2px; }
+    .btn-classroom-link:hover { text-decoration: underline; color: #2b6cb0; }
+    body.dark-mode .btn-classroom-link { color: #63b3ed; }
+
     /* Caja de asignación de fecha */
-    .date-assign-box { margin-top: 4px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e0; }
-    .date-assign-box label { font-size: 0.8rem; font-weight: 600; color: #4a5568; display: block; margin-bottom: 5px; }
-    .date-assign-box input[type="date"] { width: 100%; padding: 8px; font-size: 0.85rem; border: 1px solid #cbd5e0; border-radius: 6px; margin-bottom: 8px; outline: none; }
-    .date-assign-box input[type="date"]:focus { border-color: #3182ce; }
+    .date-assign-box { margin-top: 4px; background: var(--bg-box-assign); padding: 10px; border-radius: 8px; border: 1px solid var(--border-box-assign); }
+    .date-assign-box label { font-size: 0.8rem; font-weight: 600; color: var(--text-sub); display: block; margin-bottom: 5px; }
+    .date-assign-box input[type="date"] { width: 100%; padding: 8px; font-size: 0.85rem; border: 1px solid var(--border-box-assign); border-radius: 6px; margin-bottom: 8px; outline: none; background: var(--bg-card); color: var(--text-main); }
     
     .card-actions { display: flex; gap: 8px; }
     .btn-asignar { flex: 1; background-color: #3182ce; color: white; border: none; padding: 8px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
@@ -75,6 +110,7 @@
   <header>
     <h1>📋 Classroom Scrum</h1>
     <div class="header-btns">
+      <button class="btn-darkmode" id="btn-toggle-dark" onclick="toggleDarkMode()">🌙 Oscuro</button>
       <span class="sync-status" id="sync-status-indicator">🔄 Sincronizando...</span>
       <button class="btn-sync" onclick="sincronizarClassroom(true)">🔄 Re-autenticar</button>
     </div>
@@ -136,6 +172,22 @@
   let tareasDescartadas = JSON.parse(localStorage.getItem('tareasDescartadasClassroom')) || [];
   let storedAccessToken = localStorage.getItem('googleAccessToken');
 
+  // Modo Oscuro
+  function initDarkMode() {
+    const savedTheme = localStorage.getItem('themeClassroom');
+    if (savedTheme === 'dark') {
+      document.body.classList.add('dark-mode');
+      document.getElementById('btn-toggle-dark').innerText = '☀️ Claro';
+    }
+  }
+
+  function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('themeClassroom', isDark ? 'dark' : 'light');
+    document.getElementById('btn-toggle-dark').innerText = isDark ? '☀️ Claro' : '🌙 Oscuro';
+  }
+
   function actualizarEstadoSync(texto, error = false) {
     const el = document.getElementById('sync-status-indicator');
     if (el) {
@@ -147,6 +199,8 @@
   }
 
   function iniciarGoogleAuth() {
+    initDarkMode();
+    
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID,
       scope: SCOPES,
@@ -235,25 +289,20 @@
                 console.warn("No se pudo verificar estado de entrega:", eSub);
               }
 
-              // PROCESAMIENTO INTELIGENTE DE FECHA Y HORA DE CLASSROOM
               let fechaTexto = null;
               let horaTexto = '';
 
               if (fechasManuales[tarea.id]) {
                 fechaTexto = fechasManuales[tarea.id];
               } else if (tarea.dueDate) {
-                // Crear objeto de fecha interpretando la hora límite de Classroom en UTC o local
                 let year = tarea.dueDate.year;
-                let month = tarea.dueDate.month - 1; // 0-indexed
+                let month = tarea.dueDate.month - 1;
                 let day = tarea.dueDate.day;
                 let hours = tarea.dueTime ? (tarea.dueTime.hours || 0) : 23;
                 let minutes = tarea.dueTime ? (tarea.dueTime.minutes || 0) : 59;
 
-                // Si la hora dada es 23:59 (lo estándar en Classroom para medianoche),
-                // nos aseguramos de no saltar de día local.
                 let fechaObj = new Date(Date.UTC(year, month, day, hours, minutes));
 
-                // Convertir a formato de fecha local legible YYYY-MM-DD
                 let lYyyy = fechaObj.getFullYear();
                 let lMm = String(fechaObj.getMonth() + 1).padStart(2, '0');
                 let lDd = String(fechaObj.getDate()).padStart(2, '0');
@@ -270,7 +319,8 @@
                 fechaStr: fechaTexto,
                 horaStr: horaTexto,
                 estadoClassroom: estado,
-                descripcion: tarea.description || ''
+                descripcion: tarea.description || '',
+                linkClassroom: tarea.alternateLink || `https://classroom.google.com/c/${curso.id}/a/${tarea.id}/details`
               };
             });
 
@@ -289,7 +339,7 @@
       renderizarTablero();
     } catch (e) {
       console.error("Detalle del error:", e);
-      actualizarEstadoSync("⚠️️ Error de conexión", true);
+      actualizarEstadoSync("⚠ Error de conexión", true);
     }
   }
 
@@ -388,7 +438,8 @@
             tipo: 'VENCIDA',
             titulo: tarea.titulo,
             materia: tarea.materia,
-            fechaStr: tarea.fechaStr
+            fechaStr: tarea.fechaStr,
+            link: tarea.linkClassroom
           });
         } else if (tarea.fechaStr === hoyStr || tarea.fechaStr === mananaStr) {
           arrManana.push(tarea);
@@ -398,7 +449,8 @@
             titulo: tarea.titulo,
             materia: tarea.materia,
             fechaStr: tarea.fechaStr,
-            horaStr: tarea.horaStr || ''
+            horaStr: tarea.horaStr || '',
+            link: tarea.linkClassroom
           });
         } else {
           arrProximas.push(tarea);
@@ -413,7 +465,9 @@
     arrSinFecha.forEach(tarea => {
       const card = document.createElement('div');
       card.className = 'card';
-      let htmlTarjeta = `<span class="card-materia" style="background-color: ${tarea.color}">${tarea.materia}</span><div class="card-title">${tarea.titulo}</div>`;
+      let htmlTarjeta = `<span class="card-materia" style="background-color: ${tarea.color}">${tarea.materia}</span>
+      <div class="card-title">${tarea.titulo}</div>
+      <a href="${tarea.linkClassroom}" target="_blank" class="btn-classroom-link">🔗 Abrir en Classroom</a>`;
 
       if (tarea.esVencida) {
         const fechaTexto = formatearFechaBonita(tarea.fechaStr);
@@ -445,6 +499,7 @@
       card.innerHTML = `
         <span class="card-materia" style="background-color: ${tarea.color}">${tarea.materia}</span>
         <div class="card-title">${tarea.titulo}</div>
+        <a href="${tarea.linkClassroom}" target="_blank" class="btn-classroom-link">🔗 Abrir en Classroom</a>
         <div class="card-meta">📅 Entrega: ${fechaTexto}</div>
       `;
       cProximas.appendChild(card);
@@ -462,6 +517,7 @@
       card.innerHTML = `
         <span class="card-materia" style="background-color: ${tarea.color}">${tarea.materia}</span>
         <div class="card-title">${tarea.titulo}</div>
+        <a href="${tarea.linkClassroom}" target="_blank" class="btn-classroom-link">🔗 Abrir en Classroom</a>
         <div class="card-meta" style="color: #e67e22; font-weight:700;">${etiquetaTag} ${fechaTexto}${horaInfo}</div>
       `;
       cManana.appendChild(card);
@@ -475,6 +531,7 @@
       card.innerHTML = `
         <span class="card-materia" style="background-color: ${tarea.color}">${tarea.materia}</span>
         <div class="card-title">${tarea.titulo}</div>
+        <a href="${tarea.linkClassroom}" target="_blank" class="btn-classroom-link">🔗 Abrir en Classroom</a>
         <div class="card-meta">Status: ✅ Entregado</div>
       `;
       cHecho.appendChild(card);
@@ -497,16 +554,17 @@
           item.innerHTML = `
             <div class="alert-item-title">⚠️ Sin entregar / Vencida</div>
             <div class="alert-item-desc"><strong>${alerta.materia}</strong>: ${alerta.titulo} (${fechaTxt})</div>
-            <button class="btn-descartar" onclick="descartarTarea('${alerta.id}')">🗑️️ Descartar</button>
+            <a href="${alerta.link}" target="_blank" class="btn-classroom-link">🔗 Ver en Classroom</a>
+            <button class="btn-descartar" style="margin-top:5px;" onclick="descartarTarea('${alerta.id}')">🗑 Descartar</button>
           `;
         } else {
           item.style.borderLeftColor = '#e67e22';
-          item.style.background = '#fffaf0';
           const tagAlert = alerta.fechaStr === hoyStr ? '🔥 Entrega Hoy' : '🔥 Entrega Mañana';
           const horaTxt = alerta.horaStr || '';
           item.innerHTML = `
             <div class="alert-item-title" style="color:#d35400;">${tagAlert}</div>
             <div class="alert-item-desc"><strong>${alerta.materia}</strong>: ${alerta.titulo} (${fechaTxt}${horaTxt})</div>
+            <a href="${alerta.link}" target="_blank" class="btn-classroom-link">🔗 Ver en Classroom</a>
           `;
         }
         cAlertas.appendChild(item);
@@ -521,7 +579,7 @@
       <div class="radar-stats-title">📊 Resumen del Radar</div>
       <div>• Guías/Tareas descartadas: <strong>${tareasDescartadas.length}</strong></div>
       <div>• Tareas completadas: <strong>${countHecho}</strong></div>
-      ${tareasDescartadas.length > 0 ? '<button onclick="restaurarDescartes()" style="margin-top:8px; padding:6px 10px; font-size:0.75rem; cursor:pointer; background:#e2e8f0; border:1px solid #cbd5e0; border-radius:4px; font-weight:600;">Restaurar descartes</button>' : ''}
+      ${tareasDescartadas.length > 0 ? '<button onclick="restaurarDescartes()" style="margin-top:8px; padding:6px 10px; font-size:0.75rem; cursor:pointer; background:var(--bg-card); color:var(--text-main); border:1px solid var(--border-box-assign); border-radius:4px; font-weight:600;">Restaurar descartes</button>' : ''}
     `;
     cAlertas.appendChild(statsDiv);
   }
