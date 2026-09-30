@@ -107,7 +107,7 @@
       </div>
 
       <div id="alert-list-container" style="display: flex; flex-direction: column; gap: 10px;">
-        <!-- Se llena dinámicamente con las alertas del radar y las palabras clave -->
+        <!-- Se llena dinámicamente con las alertas -->
       </div>
     </div>
 
@@ -120,7 +120,7 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <script>
-  // ⚠️ TUS CLAVES COPIADAS DE FIREBASE
+  // Configuración de Firebase
   const firebaseConfig = {
     apiKey: "TU_API_KEY",
     authDomain: "TU_PROJECT_ID.firebaseapp.com",
@@ -133,22 +133,25 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  const CLIENT_ID = '105323188709-uo5bk2sc46g5bqbvbjgvsl0iuopj2jq1.apps.googleusercontent.com'; // Lo obtienes en la consola de Google Cloud
-const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.student-submissions.me.readonly';
+  // Cliente de autenticación de Google Cloud
+  const CLIENT_ID = '105323188709-uo5bk2sc46g5bqbvbjgvsl0iuopj2jq1.apps.googleusercontent.com';
+  const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.student-submissions.me.readonly';
 
   let tokenClient;
   let tareasReales = [];
-  const palabrasClave = ["entregar", "para el", "taller", "quiz", "evaluación", "enviar", "tarea", "revisión"];
-  const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
-  // Inicializar Autenticación con Google
   function iniciarGoogleAuth() {
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID,
       scope: SCOPES,
       callback: async (response) => {
+        if (response.error) {
+          console.error("Error en OAuth:", response);
+          alert("Error de autenticación: " + response.error);
+          return;
+        }
         if (response.access_token) {
-          cargarTareasDesdeClassroom(response.access_token);
+          await cargarTareasDesdeClassroom(response.access_token);
         }
       },
     });
@@ -162,58 +165,145 @@ const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https
     }
   }
 
-  // Obtener tareas reales vía API
   async function cargarTareasDesdeClassroom(token) {
     try {
-      // 1. Obtener los cursos donde estás inscrito
-      const resCursos = await fetch('https://classroom.googleapis.com/v1/courses?courseStates=ACTIVE', {
+      // 1. Obtener los cursos donde estás inscrita
+      const resCursos = await fetch('https://classroom.googleapis.com/v1/courses?studentId=me&courseStates=ACTIVE', {
         headers: { Authorization: `Bearer ${token}` }
       });
+
+      if (!resCursos.ok) {
+        throw new Error(`Error al obtener cursos (Status: ${resCursos.status})`);
+      }
+
       const dataCursos = await resCursos.json();
-      
       tareasReales = [];
 
-      if (dataCursos.courses) {
+      if (dataCursos.courses && dataCursos.courses.length > 0) {
         for (const curso of dataCursos.courses) {
-          // 2. Obtener tareas de cada curso
-          const resTareas = await fetch(`https://classroom.googleapis.com/v1/courses/${curso.id}/courseWork`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          const dataTareas = await resTareas.json();
+          try {
+            // 2. Obtener tareas de cada curso
+            const resTareas = await fetch(`https://classroom.googleapis.com/v1/courses/${curso.id}/courseWork`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
 
-          if (dataTareas.courseWork) {
-            for (const tarea of dataTareas.courseWork) {
-              // 3. Revisar estado de entrega del estudiante
-              const resEstado = await fetch(`https://classroom.googleapis.com/v1/courses/${curso.id}/courseWork/${tarea.id}/studentSubmissions`, {
-                headers: { Authorization: `Bearer ${token}` }
-              });
-              const dataEstado = await resEstado.json();
-              const estado = dataEstado.studentSubmissions?.[0]?.state === 'TURNED_IN' ? 'ENTREGADO' : 'PENDIENTE';
+            if (!resTareas.ok) continue; 
+            const dataTareas = await resTareas.json();
 
-              let fechaObj = null;
-              if (tarea.dueDate) {
-                fechaObj = new Date(tarea.dueDate.year, tarea.dueDate.month - 1, tarea.dueDate.day);
+            if (dataTareas.courseWork) {
+              for (const tarea of dataTareas.courseWork) {
+                let estado = 'PENDIENTE';
+
+                // 3. Obtener estado de entrega del estudiante
+                try {
+                  const resEstado = await fetch(`https://classroom.googleapis.com/v1/courses/${curso.id}/courseWork/${tarea.id}/studentSubmissions?studentId=me`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                  });
+
+                  if (resEstado.ok) {
+                    const dataEstado = await resEstado.json();
+                    if (dataEstado.studentSubmissions && dataEstado.studentSubmissions.length > 0) {
+                      const st = dataEstado.studentSubmissions[0].state;
+                      if (st === 'TURNED_IN' || st === 'RETURNED') {
+                        estado = 'ENTREGADO';
+                      }
+                    }
+                  }
+                } catch (errSub) {
+                  console.warn(`No se pudo leer la entrega para la tarea ${tarea.id}:`, errSub);
+                }
+
+                let fechaObj = null;
+                if (tarea.dueDate) {
+                  fechaObj = new Date(tarea.dueDate.year, tarea.dueDate.month - 1, tarea.dueDate.day);
+                }
+
+                tareasReales.push({
+                  id: tarea.id,
+                  titulo: tarea.title,
+                  materia: curso.name,
+                  color: '#3498db',
+                  fechaObjeto: fechaObj,
+                  estadoClassroom: estado,
+                  creadoHaceDias: Math.floor((new Date() - new Date(tarea.creationTime)) / (1000 * 60 * 60 * 24)),
+                  descripcion: tarea.description || ''
+                });
               }
-
-              tareasReales.push({
-                id: tarea.id,
-                titulo: tarea.title,
-                materia: curso.name,
-                color: '#3498db',
-                fechaObjeto: fechaObj,
-                estadoClassroom: estado,
-                creadoHaceDias: Math.floor((new Date() - new Date(tarea.creationTime)) / (1000 * 60 * 60 * 24)),
-                descripcion: tarea.description || ''
-              });
             }
+          } catch (errCurso) {
+            console.warn(`Error procesando las tareas del curso ${curso.name}:`, errCurso);
           }
         }
       }
 
       renderizarTablero();
     } catch (e) {
-      console.error(e);
-      alert("Error al sincronizar con Classroom. Revisa tus credenciales.");
+      console.error("Detalle del error:", e);
+      alert("Error al sincronizar con Classroom: " + e.message);
+    }
+  }
+
+  function renderizarTablero() {
+    const cSinFecha = document.getElementById('container-sin-fecha');
+    const cProximas = document.getElementById('container-proximas');
+    const cManana = document.getElementById('container-manana');
+    const cHecho = document.getElementById('container-hecho');
+    const cAlertas = document.getElementById('alert-list-container');
+
+    cSinFecha.innerHTML = '';
+    cProximas.innerHTML = '';
+    cManana.innerHTML = '';
+    cHecho.innerHTML = '';
+    cAlertas.innerHTML = '';
+
+    let countSinFecha = 0, countProximas = 0, countManana = 0, countHecho = 0;
+    const hoy = new Date();
+    hoy.setHours(0,0,0,0);
+
+    tareasReales.forEach(tarea => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      
+      let htmlTarjeta = `
+        <span class="card-materia" style="background-color: ${tarea.color}">${tarea.materia}</span>
+        <div class="card-title">${tarea.titulo}</div>
+      `;
+
+      if (tarea.estadoClassroom === 'ENTREGADO') {
+        htmlTarjeta += `<div class="card-meta">Status: ✅ Entregado</div>`;
+        card.innerHTML = htmlTarjeta;
+        cHecho.appendChild(card);
+        countHecho++;
+      } else if (!tarea.fechaObjeto) {
+        htmlTarjeta += `<div class="card-meta">Sin fecha límite asignada</div>`;
+        card.innerHTML = htmlTarjeta;
+        cSinFecha.appendChild(card);
+        countSinFecha++;
+      } else {
+        const diffTiempo = tarea.fechaObjeto - hoy;
+        const diffDias = Math.ceil(diffTiempo / (1000 * 60 * 60 * 24));
+        const fechaTexto = tarea.fechaObjeto.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+
+        htmlTarjeta += `<div class="card-meta">📅 Entrega: ${fechaTexto}</div>`;
+        card.innerHTML = htmlTarjeta;
+
+        if (diffDias <= 1) {
+          cManana.appendChild(card);
+          countManana++;
+        } else {
+          cProximas.appendChild(card);
+          countProximas++;
+        }
+      }
+    });
+
+    document.getElementById('count-sin-fecha').innerText = countSinFecha;
+    document.getElementById('count-proximas').innerText = countProximas;
+    document.getElementById('count-manana').innerText = countManana;
+    document.getElementById('count-hecho').innerText = countHecho;
+
+    if (tareasReales.length === 0) {
+      cAlertas.innerHTML = '<div class="alert-item"><div class="alert-item-desc">No se encontraron tareas o la lista está vacía.</div></div>';
     }
   }
 
