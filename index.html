@@ -35,9 +35,9 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; transition: background-color 0.3s, color 0.3s; }
-    body { background-color: var(--bg-body); color: var(--text-main); padding: 25px; }
+    body { background-color: var(--bg-body); color: var(--text-main); padding: 20px; }
     
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     h1 { font-size: 1.8rem; color: var(--text-header); font-weight: 700; }
     .header-btns { display: flex; gap: 10px; align-items: center; }
     .sync-status { font-size: 0.85rem; font-weight: 600; color: #27ae60; background: #e8f8f5; padding: 6px 12px; border-radius: 6px; border: 1px solid #a3e4d7; }
@@ -49,37 +49,61 @@
     .btn-darkmode:hover { background-color: #2c3e50; }
 
     /* Estructura Principal */
-    .main-container { display: flex; gap: 20px; align-items: flex-start; }
+    .main-container { display: flex; gap: 16px; align-items: flex-start; width: 100%; }
     
-   /* Tablero Kanban - Columnas más anchas */
-    .kanban-board { display: flex; gap: 24px; flex: 1; overflow-x: auto; padding-bottom: 15px; }
+    /* Tablero Kanban - Ajustado para caber perfectamente */
+    .kanban-board { display: flex; gap: 14px; flex: 1; overflow-x: auto; padding-bottom: 10px; }
     
     .column { 
       background: var(--bg-column); 
-      border-radius: 16px; 
-      width: 380px;            /* Subió de 330px a 380px */
-      min-width: 370px;        /* Subió de 320px a 370px */
+      border-radius: 14px; 
+      flex: 1; 
+      min-width: 260px; 
+      max-width: 350px; 
       flex-shrink: 0; 
-      padding: 20px;           /* Más espacio interno */
+      padding: 16px; 
       display: flex; 
       flex-direction: column; 
-      height: calc(100vh - 120px); 
+      height: calc(100vh - 110px); 
     }
+    
+    .column-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+    .count-badge { background: #d0d7de; color: #24292f; border-radius: 12px; padding: 2px 10px; font-size: 0.85rem; font-weight: 600; }
+    .cards-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding-right: 4px; }
 
-    /* Panel Lateral de Alertas - También un poco más amplio */
+    /* Panel Lateral de Alertas & Radar */
     .alert-panel { 
-      width: 380px;            /* Subió de 340px a 380px */
-      min-width: 360px;        /* Subió de 320px a 360px */
+      width: 320px; 
+      min-width: 300px; 
       background: var(--bg-panel); 
-      border-radius: 16px; 
-      padding: 20px; 
+      border-radius: 14px; 
+      padding: 18px; 
       box-shadow: 0 4px 12px rgba(0,0,0,0.06); 
       display: flex; 
       flex-direction: column; 
       gap: 15px; 
-      height: calc(100vh - 120px); 
+      height: calc(100vh - 110px); 
       overflow-y: auto; 
     }
+    .panel-header { font-size: 1.1rem; font-weight: 700; color: #c0392b; border-bottom: 2px solid #fadbd8; padding-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    
+    /* Cajones de Alerta con Colores Restaurados */
+    .alert-item { border-radius: 8px; padding: 12px; font-size: 0.88rem; display: flex; flex-direction: column; gap: 8px; }
+    
+    /* Rojo para Vencidas */
+    .alert-item.alert-vencida { background: #fff5f5; border-left: 4px solid #e74c3c; }
+    body.dark-mode .alert-item.alert-vencida { background: #321c1c; }
+    
+    /* Naranja para Urgentes */
+    .alert-item.alert-urgente { background: #fffaf0; border-left: 4px solid #e67e22; }
+    body.dark-mode .alert-item.alert-urgente { background: #33261a; }
+
+    .alert-item-title { font-weight: 700; }
+    .alert-item-desc { color: var(--text-sub); font-size: 0.85rem; line-height: 1.3; }
+
+    .radar-stats { background: var(--bg-box-assign); border: 1px solid var(--border-box-assign); border-radius: 8px; padding: 12px; font-size: 0.85rem; }
+    .radar-stats-title { font-weight: 700; color: var(--text-main); margin-bottom: 6px; }
+
     /* Estilos de Tarjeta Kanban */
     .card { background: var(--bg-card); border-radius: 12px; padding: 16px; box-shadow: 0 3px 8px rgba(0,0,0,0.06); border: 1px solid var(--border-card); display: flex; flex-direction: column; gap: 10px; position: relative; }
     .card-materia { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; color: white; display: inline-block; align-self: flex-start; }
@@ -109,9 +133,10 @@
     #col-manana { border-top: 5px solid #e67e22; }
     #col-hecho { border-top: 5px solid #2ecc71; }
 
-    @media (max-width: 900px) {
+    @media (max-width: 1024px) {
       .main-container { flex-direction: column; }
       .alert-panel { width: 100%; height: auto; }
+      .column { max-width: none; }
     }
   </style>
 </head>
@@ -182,7 +207,6 @@
   let tareasDescartadas = JSON.parse(localStorage.getItem('tareasDescartadasClassroom')) || [];
   let storedAccessToken = localStorage.getItem('googleAccessToken');
 
-  // Modo Oscuro
   function initDarkMode() {
     const savedTheme = localStorage.getItem('themeClassroom');
     if (savedTheme === 'dark') {
@@ -553,22 +577,22 @@
     document.getElementById('count-manana').innerText = countManana;
     document.getElementById('count-hecho').innerText = countHecho;
 
-    // Panel de Alertas
+    // Panel de Alertas con Clases Restauradas
     if (alertasRadar.length > 0) {
       alertasRadar.forEach(alerta => {
         const item = document.createElement('div');
-        item.className = 'alert-item';
         const fechaTxt = formatearFechaBonita(alerta.fechaStr);
         
         if (alerta.tipo === 'VENCIDA') {
+          item.className = 'alert-item alert-vencida';
           item.innerHTML = `
-            <div class="alert-item-title">⚠️ Sin entregar / Vencida</div>
+            <div class="alert-item-title" style="color:#e74c3c;">⚠️ Sin entregar / Vencida</div>
             <div class="alert-item-desc"><strong>${alerta.materia}</strong>: ${alerta.titulo} (${fechaTxt})</div>
             <a href="${alerta.link}" target="_blank" class="btn-classroom-link">🔗 Ver en Classroom</a>
             <button class="btn-descartar" style="margin-top:5px;" onclick="descartarTarea('${alerta.id}')">🗑 Descartar</button>
           `;
         } else {
-          item.style.borderLeftColor = '#e67e22';
+          item.className = 'alert-item alert-urgente';
           const tagAlert = alerta.fechaStr === hoyStr ? '🔥 Entrega Hoy' : '🔥 Entrega Mañana';
           const horaTxt = alerta.horaStr || '';
           item.innerHTML = `
@@ -580,7 +604,7 @@
         cAlertas.appendChild(item);
       });
     } else {
-      cAlertas.innerHTML = '<div class="alert-item" style="border-left-color:#2ecc71; background:#f0fff4;"><div class="alert-item-title" style="color:#27ae60;">✨ Todo al día</div><div class="alert-item-desc">No tienes alertas ni entregas pendientes urgentes.</div></div>';
+      cAlertas.innerHTML = '<div class="alert-item" style="border-left: 4px solid #2ecc71; background:#f0fff4;"><div class="alert-item-title" style="color:#27ae60;">✨ Todo al día</div><div class="alert-item-desc">No tienes alertas ni entregas pendientes urgentes.</div></div>';
     }
 
     const statsDiv = document.createElement('div');
