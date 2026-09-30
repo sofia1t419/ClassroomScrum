@@ -51,25 +51,35 @@
     /* Estructura Principal */
     .main-container { display: flex; gap: 20px; align-items: flex-start; }
     
-    /* Tablero Kanban */
-    .kanban-board { display: flex; gap: 20px; flex: 1; overflow-x: auto; padding-bottom: 15px; }
-    .column { background: var(--bg-column); border-radius: 14px; width: 330px; min-width: 320px; flex-shrink: 0; padding: 16px; display: flex; flex-direction: column; height: calc(100vh - 130px); }
-    .column-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-    .count-badge { background: #d0d7de; color: #24292f; border-radius: 12px; padding: 2px 10px; font-size: 0.85rem; font-weight: 600; }
-    .cards-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding-right: 4px; }
-
-    /* Panel Lateral de Alertas & Radar */
-    .alert-panel { width: 340px; min-width: 320px; background: var(--bg-panel); border-radius: 14px; padding: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); display: flex; flex-direction: column; gap: 15px; height: calc(100vh - 130px); overflow-y: auto; }
-    .panel-header { font-size: 1.1rem; font-weight: 700; color: #c0392b; border-bottom: 2px solid #fadbd8; padding-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+   /* Tablero Kanban - Columnas más anchas */
+    .kanban-board { display: flex; gap: 24px; flex: 1; overflow-x: auto; padding-bottom: 15px; }
     
-    .alert-item { background: #fff5f5; border-left: 4px solid #e74c3c; border-radius: 8px; padding: 12px; font-size: 0.88rem; display: flex; flex-direction: column; gap: 8px; }
-    body.dark-mode .alert-item { background: #2c1a1a; }
-    .alert-item-title { font-weight: 700; color: #e74c3c; }
-    .alert-item-desc { color: var(--text-sub); font-size: 0.85rem; line-height: 1.3; }
+    .column { 
+      background: var(--bg-column); 
+      border-radius: 16px; 
+      width: 380px;            /* Subió de 330px a 380px */
+      min-width: 370px;        /* Subió de 320px a 370px */
+      flex-shrink: 0; 
+      padding: 20px;           /* Más espacio interno */
+      display: flex; 
+      flex-direction: column; 
+      height: calc(100vh - 120px); 
+    }
 
-    .radar-stats { background: var(--bg-box-assign); border: 1px solid var(--border-box-assign); border-radius: 8px; padding: 12px; font-size: 0.85rem; }
-    .radar-stats-title { font-weight: 700; color: var(--text-main); margin-bottom: 6px; }
-
+    /* Panel Lateral de Alertas - También un poco más amplio */
+    .alert-panel { 
+      width: 380px;            /* Subió de 340px a 380px */
+      min-width: 360px;        /* Subió de 320px a 360px */
+      background: var(--bg-panel); 
+      border-radius: 16px; 
+      padding: 20px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06); 
+      display: flex; 
+      flex-direction: column; 
+      gap: 15px; 
+      height: calc(100vh - 120px); 
+      overflow-y: auto; 
+    }
     /* Estilos de Tarjeta Kanban */
     .card { background: var(--bg-card); border-radius: 12px; padding: 16px; box-shadow: 0 3px 8px rgba(0,0,0,0.06); border: 1px solid var(--border-card); display: flex; flex-direction: column; gap: 10px; position: relative; }
     .card-materia { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; color: white; display: inline-block; align-self: flex-start; }
