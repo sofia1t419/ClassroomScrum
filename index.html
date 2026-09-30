@@ -235,24 +235,15 @@
                 console.warn("No se pudo verificar estado de entrega:", eSub);
               }
 
-              // CONSTRUCCIÓN DE FECHA EN HORA LOCAL
-              let fechaObj = null;
+              // OBTENER LA FECHA COMO TEXTO PURO (YYYY-MM-DD) SIN OBJETOS DATE
+              let fechaTexto = null;
               if (fechasManuales[tarea.id]) {
-                const partes = fechasManuales[tarea.id].split('-');
-                fechaObj = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]), 23, 59, 59);
+                fechaTexto = fechasManuales[tarea.id]; // ya viene en 'YYYY-MM-DD'
               } else if (tarea.dueDate) {
-                const year = tarea.dueDate.year;
-                const month = tarea.dueDate.month - 1;
-                const day = tarea.dueDate.day;
-                
-                let hour = 23, minute = 59;
-                if (tarea.dueTime) {
-                  hour = tarea.dueTime.hours !== undefined ? tarea.dueTime.hours : 23;
-                  minute = tarea.dueTime.minutes !== undefined ? tarea.dueTime.minutes : 59;
-                }
-                
-                // Objeto de fecha local para que coincida exactamente con la fecha de Colombia
-                fechaObj = new Date(year, month, day, hour, minute, 59);
+                const yyyy = tarea.dueDate.year;
+                const mm = String(tarea.dueDate.month).padStart(2, '0');
+                const dd = String(tarea.dueDate.day).padStart(2, '0');
+                fechaTexto = `${yyyy}-${mm}-${dd}`;
               }
 
               return {
@@ -260,7 +251,7 @@
                 titulo: tarea.title,
                 materia: curso.name,
                 color: '#3498db',
-                fechaObjeto: fechaObj,
+                fechaStr: fechaTexto, // Texto directo "YYYY-MM-DD"
                 estadoClassroom: estado,
                 descripcion: tarea.description || ''
               };
@@ -291,10 +282,9 @@
       fechasManuales[tareaId] = inputDate.value;
       localStorage.setItem('fechasManualesClassroom', JSON.stringify(fechasManuales));
 
-      const partes = inputDate.value.split('-');
       const tarea = tareasReales.find(t => t.id === tareaId);
       if (tarea) {
-        tarea.fechaObjeto = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]), 23, 59, 59);
+        tarea.fechaStr = inputDate.value;
       }
       renderizarTablero();
     } else {
@@ -316,10 +306,32 @@
     renderizarTablero();
   }
 
-  // Formateador visual que lee estrictamente el día/mes local de la máquina
-  function formatearFechaVisual(fecha) {
+  // Formateador de texto YYYY-MM-DD a formato bonito (ej: 30 sep)
+  function formatearFechaBonita(fechaStr) {
+    if (!fechaStr) return '';
+    const partes = fechaStr.split('-');
+    const dia = parseInt(partes[2], 10);
+    const mesIdx = parseInt(partes[1], 10) - 1;
     const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-    return `${fecha.getDate()} ${meses[fecha.getMonth()]}`;
+    return `${dia} ${meses[mesIdx]}`;
+  }
+
+  // Obtener fechas de hoy y mañana en formato YYYY-MM-DD estricto local
+  function obtenerFechasComparacion() {
+    const ahora = new Date();
+    
+    const yyyy = ahora.getFullYear();
+    const mm = String(ahora.getMonth() + 1).padStart(2, '0');
+    const dd = String(ahora.getDate()).padStart(2, '0');
+    const hoyStr = `${yyyy}-${mm}-${dd}`;
+
+    const mananaObj = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate() + 1);
+    const mYyyy = mananaObj.getFullYear();
+    const mMm = String(mananaObj.getMonth() + 1).padStart(2, '0');
+    const mDd = String(mananaObj.getDate()).padStart(2, '0');
+    const mananaStr = `${mYyyy}-${mMm}-${mDd}`;
+
+    return { hoyStr, mananaStr };
   }
 
   function renderizarTablero() {
@@ -338,10 +350,7 @@
     let countSinFecha = 0, countProximas = 0, countManana = 0, countHecho = 0;
     let alertasRadar = [];
 
-    // Cálculo exacto en hora local
-    const ahora = new Date();
-    const hoyInicio = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), 0, 0, 0).getTime();
-    const mananaFin = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate() + 1, 23, 59, 59).getTime();
+    const { hoyStr, mananaStr } = obtenerFechasComparacion();
 
     const tareasActivas = tareasReales.filter(t => !tareasDescartadas.includes(t.id));
 
@@ -353,12 +362,11 @@
     tareasActivas.forEach(tarea => {
       if (tarea.estadoClassroom === 'ENTREGADO') {
         arrHecho.push(tarea);
-      } else if (!tarea.fechaObjeto) {
+      } else if (!tarea.fechaStr) {
         arrSinFecha.push(tarea);
       } else {
-        const tiempoTarea = tarea.fechaObjeto.getTime();
-
-        if (tiempoTarea < hoyInicio) {
+        // Comparación directa de texto "YYYY-MM-DD"
+        if (tarea.fechaStr < hoyStr) {
           // Tarea Vencida / Entrega tardía
           arrSinFecha.push({ ...tarea, esVencida: true });
           alertasRadar.push({
@@ -366,9 +374,9 @@
             tipo: 'VENCIDA',
             titulo: tarea.titulo,
             materia: tarea.materia,
-            fecha: tarea.fechaObjeto
+            fechaStr: tarea.fechaStr
           });
-        } else if (tiempoTarea <= mananaFin) {
+        } else if (tarea.fechaStr === hoyStr || tarea.fechaStr === mananaStr) {
           // Tarea para Hoy o Mañana
           arrManana.push(tarea);
           alertasRadar.push({
@@ -376,7 +384,7 @@
             tipo: 'URGENTE',
             titulo: tarea.titulo,
             materia: tarea.materia,
-            fecha: tarea.fechaObjeto
+            fechaStr: tarea.fechaStr
           });
         } else {
           // Tarea Próxima
@@ -385,17 +393,17 @@
       }
     });
 
-    arrProximas.sort((a, b) => a.fechaObjeto - b.fechaObjeto);
-    arrManana.sort((a, b) => a.fechaObjeto - b.fechaObjeto);
+    arrProximas.sort((a, b) => a.fechaStr.localeCompare(b.fechaStr));
+    arrManana.sort((a, b) => a.fechaStr.localeCompare(b.fechaStr));
 
-    // 1. Renderizar Sin Fecha / Vencidas (CON opción de descartar)
+    // 1. Renderizar Sin Fecha / Vencidas
     arrSinFecha.forEach(tarea => {
       const card = document.createElement('div');
       card.className = 'card';
       let htmlTarjeta = `<span class="card-materia" style="background-color: ${tarea.color}">${tarea.materia}</span><div class="card-title">${tarea.titulo}</div>`;
 
       if (tarea.esVencida) {
-        const fechaTexto = formatearFechaVisual(tarea.fechaObjeto);
+        const fechaTexto = formatearFechaBonita(tarea.fechaStr);
         htmlTarjeta += `<div class="card-meta card-vencida">⚠️ Vencida (${fechaTexto})</div>`;
       } else {
         htmlTarjeta += `<div class="card-meta">Sin fecha límite asignada</div>`;
@@ -416,11 +424,11 @@
       countSinFecha++;
     });
 
-    // 2. Renderizar Próximas (SIN opción de descartar)
+    // 2. Renderizar Próximas (Sin botón descartar)
     arrProximas.forEach(tarea => {
       const card = document.createElement('div');
       card.className = 'card';
-      const fechaTexto = formatearFechaVisual(tarea.fechaObjeto);
+      const fechaTexto = formatearFechaBonita(tarea.fechaStr);
       card.innerHTML = `
         <span class="card-materia" style="background-color: ${tarea.color}">${tarea.materia}</span>
         <div class="card-title">${tarea.titulo}</div>
@@ -430,15 +438,16 @@
       countProximas++;
     });
 
-    // 3. Renderizar Para Mañana / Hoy (SIN opción de descartar)
+    // 3. Renderizar Para Mañana / Hoy (Sin botón descartar)
     arrManana.forEach(tarea => {
       const card = document.createElement('div');
       card.className = 'card';
-      const fechaTexto = formatearFechaVisual(tarea.fechaObjeto);
+      const fechaTexto = formatearFechaBonita(tarea.fechaStr);
+      const etiquetaTag = tarea.fechaStr === hoyStr ? '🔥 Entrega Hoy:' : '🔥 Entrega Mañana:';
       card.innerHTML = `
         <span class="card-materia" style="background-color: ${tarea.color}">${tarea.materia}</span>
         <div class="card-title">${tarea.titulo}</div>
-        <div class="card-meta" style="color: #e67e22; font-weight:700;">🔥 Entrega: ${fechaTexto}</div>
+        <div class="card-meta" style="color: #e67e22; font-weight:700;">${etiquetaTag} ${fechaTexto}</div>
       `;
       cManana.appendChild(card);
       countManana++;
@@ -467,21 +476,20 @@
       alertasRadar.forEach(alerta => {
         const item = document.createElement('div');
         item.className = 'alert-item';
-        const fechaTxt = formatearFechaVisual(alerta.fecha);
+        const fechaTxt = formatearFechaBonita(alerta.fechaStr);
         
         if (alerta.tipo === 'VENCIDA') {
-          // Permite descartar solo si está Vencida / Entrega tardía
           item.innerHTML = `
-            <div class="alert-item-title">⚠️️ Sin entregar / Vencida</div>
+            <div class="alert-item-title">⚠️ Sin entregar / Vencida</div>
             <div class="alert-item-desc"><strong>${alerta.materia}</strong>: ${alerta.titulo} (${fechaTxt})</div>
             <button class="btn-descartar" onclick="descartarTarea('${alerta.id}')">🗑️ Descartar</button>
           `;
         } else {
-          // NO tiene botón de descartar si es Entrega Inminente (Hoy / Mañana)
           item.style.borderLeftColor = '#e67e22';
           item.style.background = '#fffaf0';
+          const tagAlert = alerta.fechaStr === hoyStr ? '🔥 Entrega Hoy' : '🔥 Entrega Mañana';
           item.innerHTML = `
-            <div class="alert-item-title" style="color:#d35400;">🔥 Entrega inminente</div>
+            <div class="alert-item-title" style="color:#d35400;">${tagAlert}</div>
             <div class="alert-item-desc"><strong>${alerta.materia}</strong>: ${alerta.titulo} (${fechaTxt})</div>
           `;
         }
