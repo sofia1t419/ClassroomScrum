@@ -153,7 +153,7 @@
       callback: async (response) => {
         if (response.error) {
           console.error("Error en OAuth:", response);
-          actualizarEstadoSync("⚠️ Error de conexión", true);
+          actualizarEstadoSync("⚠️️ Error de conexión", true);
           return;
         }
         if (response.access_token) {
@@ -184,7 +184,7 @@
     }
   }
 
-  // Función optimizada para cargar todas las materias y tareas en paralelo
+  // Carga rápida en paralelo
   async function cargarTareasDesdeClassroom(token) {
     try {
       actualizarEstadoSync("🔄 Obteniendo tareas...");
@@ -205,7 +205,6 @@
       tareasReales = [];
 
       if (dataCursos.courses && dataCursos.courses.length > 0) {
-        // Cargar todos los cursos en paralelo
         const promesasCursos = dataCursos.courses.map(async (curso) => {
           try {
             const resTareas = await fetch(`https://classroom.googleapis.com/v1/courses/${curso.id}/courseWork`, {
@@ -217,7 +216,6 @@
 
             if (!dataTareas.courseWork) return [];
 
-            // Cargar estado de entregas en paralelo para las tareas del curso
             const promesasTareas = dataTareas.courseWork.map(async (tarea) => {
               let estado = 'PENDIENTE';
 
@@ -238,16 +236,23 @@
                 console.warn("No se pudo verificar estado de entrega:", eSub);
               }
 
-              // Corrección precisa de fecha Javascript (mes base 0)
+              // CONSTRUCCIÓN PRECISA DE LA FECHA DE ENTREGA
               let fechaObj = null;
               if (fechasManuales[tarea.id]) {
                 const partes = fechasManuales[tarea.id].split('-');
                 fechaObj = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]), 23, 59, 59);
               } else if (tarea.dueDate) {
                 const year = tarea.dueDate.year;
-                const month = tarea.dueDate.month - 1; // Ajuste del mes (1-12 a 0-11)
-                const day = tarea.dueDate.day;
-                fechaObj = new Date(year, month, day, 23, 59, 59);
+                const month = Number(tarea.dueDate.month) - 1; // Restamos 1 porque en JS Enero=0, Septiembre=8
+                const day = Number(tarea.dueDate.day);
+                
+                let hour = 23, minute = 59;
+                if (tarea.dueTime) {
+                  hour = tarea.dueTime.hours !== undefined ? tarea.dueTime.hours : 23;
+                  minute = tarea.dueTime.minutes !== undefined ? tarea.dueTime.minutes : 59;
+                }
+                
+                fechaObj = new Date(year, month, day, hour, minute, 59);
               }
 
               return {
@@ -327,9 +332,10 @@
     let countSinFecha = 0, countProximas = 0, countManana = 0, countHecho = 0;
     let alertasRadar = [];
 
-    const hoy = new Date();
-    const hoyInicio = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
-    const mananaFin = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 1, 23, 59, 59);
+    // LÓGICA DE DÍAS (HOY / MAÑANA / FUTURO / VENCIDO)
+    const ahora = new Date();
+    const hoyInicio = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), 0, 0, 0);
+    const mananaFin = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate() + 1, 23, 59, 59);
 
     const tareasActivas = tareasReales.filter(t => !tareasDescartadas.includes(t.id));
 
@@ -344,6 +350,7 @@
       } else if (!tarea.fechaObjeto) {
         arrSinFecha.push(tarea);
       } else if (tarea.fechaObjeto < hoyInicio) {
+        // Tarea vencida
         arrSinFecha.push({ ...tarea, esVencida: true });
         alertasRadar.push({
           id: tarea.id,
@@ -353,6 +360,7 @@
           fecha: tarea.fechaObjeto
         });
       } else if (tarea.fechaObjeto <= mananaFin) {
+        // Entrega para hoy o mañana
         arrManana.push(tarea);
         alertasRadar.push({
           id: tarea.id,
@@ -362,12 +370,15 @@
           fecha: tarea.fechaObjeto
         });
       } else {
+        // Entrega futura
         arrProximas.push(tarea);
       }
     });
 
     arrProximas.sort((a, b) => a.fechaObjeto - b.fechaObjeto);
+    arrManana.sort((a, b) => a.fechaObjeto - b.fechaObjeto);
 
+    // Renderizar Sin Fecha / Vencidas
     arrSinFecha.forEach(tarea => {
       const card = document.createElement('div');
       card.className = 'card';
@@ -395,6 +406,7 @@
       countSinFecha++;
     });
 
+    // Renderizar Próximas
     arrProximas.forEach(tarea => {
       const card = document.createElement('div');
       card.className = 'card';
@@ -409,6 +421,7 @@
       countProximas++;
     });
 
+    // Renderizar Para Mañana / Hoy
     arrManana.forEach(tarea => {
       const card = document.createElement('div');
       card.className = 'card';
@@ -423,6 +436,7 @@
       countManana++;
     });
 
+    // Renderizar Hecho
     arrHecho.forEach(tarea => {
       const card = document.createElement('div');
       card.className = 'card';
