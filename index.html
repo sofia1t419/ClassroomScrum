@@ -5,56 +5,64 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Classroom Scrum</title>
   
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-    body { background-color: #f4f7f6; color: #333; padding: 20px; }
+    body { background-color: #f4f7f6; color: #333; padding: 25px; }
     
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    h1 { font-size: 1.5rem; color: #2c3e50; }
-    .btn-sync { background-color: #4285f4; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    h1 { font-size: 1.8rem; color: #2c3e50; font-weight: 700; }
+    .header-btns { display: flex; gap: 10px; }
+    .btn-sync { background-color: #4285f4; color: white; border: none; padding: 12px 22px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: background 0.2s; }
+    .btn-sync:hover { background-color: #3367d6; }
+    .btn-reset-descartes { background-color: #718096; color: white; border: none; padding: 12px 18px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
 
     /* Estructura Principal */
     .main-container { display: flex; gap: 20px; align-items: flex-start; }
     
     /* Tablero Kanban */
-    .kanban-board { display: flex; gap: 15px; flex: 1; overflow-x: auto; padding-bottom: 10px; }
-    .column { background: #ebedf0; border-radius: 12px; width: 250px; min-width: 240px; flex-shrink: 0; padding: 12px; display: flex; flex-direction: column; height: calc(100vh - 120px); }
-    .column-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 12px; display: flex; justify-content: space-between; }
-    .cards-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    .kanban-board { display: flex; gap: 20px; flex: 1; overflow-x: auto; padding-bottom: 15px; }
+    .column { background: #ebedf0; border-radius: 14px; width: 330px; min-width: 320px; flex-shrink: 0; padding: 16px; display: flex; flex-direction: column; height: calc(100vh - 130px); }
+    .column-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+    .count-badge { background: #d0d7de; color: #24292f; border-radius: 12px; padding: 2px 10px; font-size: 0.85rem; font-weight: 600; }
+    .cards-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding-right: 4px; }
 
-    /* Panel Lateral de Alertas (Derecha) */
-    .alert-panel { width: 300px; min-width: 280px; background: white; border-radius: 12px; padding: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 15px; height: calc(100vh - 120px); overflow-y: auto; }
-    .panel-header { font-size: 1rem; font-weight: 600; color: #c0392b; border-bottom: 2px solid #fadbd8; padding-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    /* Panel Lateral de Alertas & Radar */
+    .alert-panel { width: 330px; min-width: 310px; background: white; border-radius: 14px; padding: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); display: flex; flex-direction: column; gap: 15px; height: calc(100vh - 130px); overflow-y: auto; }
+    .panel-header { font-size: 1.1rem; font-weight: 700; color: #c0392b; border-bottom: 2px solid #fadbd8; padding-bottom: 10px; display: flex; align-items: center; gap: 8px; }
     
-    /* Cajas de Alerta en el Panel */
-    .alert-item { background: #fff5f5; border-left: 4px solid #e74c3c; border-radius: 6px; padding: 10px; font-size: 0.82rem; }
-    .alert-item-title { font-weight: 600; color: #922b21; margin-bottom: 3px; }
-    .alert-item-desc { color: #5a5a5a; }
+    .alert-item { background: #fff5f5; border-left: 4px solid #e74c3c; border-radius: 8px; padding: 12px; font-size: 0.88rem; }
+    .alert-item-title { font-weight: 700; color: #922b21; margin-bottom: 4px; }
+    .alert-item-desc { color: #5a5a5a; font-size: 0.82rem; }
+
+    .radar-stats { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; font-size: 0.85rem; }
+    .radar-stats-title { font-weight: 700; color: #2d3748; margin-bottom: 6px; }
 
     /* Estilos de Tarjeta Kanban */
-    .card { background: white; border-radius: 10px; padding: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; }
-    .card-materia { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; padding: 3px 8px; border-radius: 5px; color: white; display: inline-block; margin-bottom: 6px; }
-    .card-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 5px; }
-    .card-meta { font-size: 0.8rem; color: #7f8c8d; margin-bottom: 8px; }
+    .card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 3px 8px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px; position: relative; }
+    .card-materia { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; color: white; display: inline-block; align-self: flex-start; }
+    .card-title { font-size: 1.05rem; font-weight: 600; color: #1a202c; line-height: 1.35; }
+    .card-meta { font-size: 0.88rem; color: #4a5568; font-weight: 500; }
+    .card-vencida { color: #e74c3c; font-weight: 700; }
+
+    /* Caja de asignación de fecha */
+    .date-assign-box { margin-top: 4px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e0; }
+    .date-assign-box label { font-size: 0.8rem; font-weight: 600; color: #4a5568; display: block; margin-bottom: 5px; }
+    .date-assign-box input[type="date"] { width: 100%; padding: 8px; font-size: 0.85rem; border: 1px solid #cbd5e0; border-radius: 6px; margin-bottom: 8px; outline: none; }
+    .date-assign-box input[type="date"]:focus { border-color: #3182ce; }
     
-    .card.radar-alert { border-left: 5px solid #e74c3c; background-color: #fff6f6; }
-    .badge-keyword { background: #ffeaa7; color: #d63031; font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-bottom: 8px; display: inline-block; }
-    .badge-auto { background: #e8f0fe; color: #1a73e8; font-size: 0.65rem; padding: 2px 5px; border-radius: 4px; float: right; }
-
-    /* Asignador de Fecha Manual */
-    .date-assign-box { margin-top: 8px; background: #f8f9fa; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0; }
-    .date-assign-box label { font-size: 0.75rem; font-weight: 600; color: #4a5568; display: block; margin-bottom: 4px; }
-    .date-assign-box input[type="date"] { width: 100%; padding: 5px; font-size: 0.8rem; border: 1px solid #cbd5e0; border-radius: 4px; margin-bottom: 6px; }
-    .btn-asignar { width: 100%; background-color: #3182ce; color: white; border: none; padding: 6px; border-radius: 4px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+    .card-actions { display: flex; gap: 8px; }
+    .btn-asignar { flex: 1; background-color: #3182ce; color: white; border: none; padding: 8px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
     .btn-asignar:hover { background-color: #2b6cb0; }
+    .btn-descartar { background-color: #e53e3e; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+    .btn-descartar:hover { background-color: #c53030; }
 
-    /* Bordes por columna */
-    #col-sin-fecha { border-top: 4px solid #7f8c8d; }
-    #col-proximas { border-top: 4px solid #3498db; }
-    #col-manana { border-top: 4px solid #e67e22; }
-    #col-hecho { border-top: 4px solid #2ecc71; }
+    /* Bordes superiores por columna */
+    #col-sin-fecha { border-top: 5px solid #7f8c8d; }
+    #col-proximas { border-top: 5px solid #3498db; }
+    #col-manana { border-top: 5px solid #e67e22; }
+    #col-hecho { border-top: 5px solid #2ecc71; }
 
     @media (max-width: 900px) {
       .main-container { flex-direction: column; }
@@ -66,7 +74,9 @@
 
   <header>
     <h1>📋 Classroom Scrum</h1>
-    <button class="btn-sync" onclick="sincronizarClassroom()">🔄 Sincronizar API</button>
+    <div class="header-btns">
+      <button class="btn-sync" onclick="sincronizarClassroom()">🔄 Sincronizar API</button>
+    </div>
   </header>
 
   <div class="main-container">
@@ -76,25 +86,25 @@
       
       <!-- 1. Sin Fecha / Revisar -->
       <div class="column" id="col-sin-fecha">
-        <div class="column-title">📥 Sin Fecha / Revisar <span id="count-sin-fecha">0</span></div>
+        <div class="column-title">📥 Sin Fecha / Revisar <span class="count-badge" id="count-sin-fecha">0</span></div>
         <div class="cards-container" id="container-sin-fecha"></div>
       </div>
 
       <!-- 2. Próximas -->
       <div class="column" id="col-proximas">
-        <div class="column-title">⏳ Próximas <span id="count-proximas">0</span></div>
+        <div class="column-title">⏳ Próximas <span class="count-badge" id="count-proximas">0</span></div>
         <div class="cards-container" id="container-proximas"></div>
       </div>
 
       <!-- 3. Para Mañana / Hoy -->
       <div class="column" id="col-manana">
-        <div class="column-title">🔥 Para Mañana / Hoy <span id="count-manana">0</span></div>
+        <div class="column-title">🔥 Para Mañana / Hoy <span class="count-badge" id="count-manana">0</span></div>
         <div class="cards-container" id="container-manana"></div>
       </div>
 
       <!-- 4. Hecho -->
       <div class="column" id="col-hecho">
-        <div class="column-title">✅ Hecho <span id="count-hecho">0</span></div>
+        <div class="column-title">✅ Hecho <span class="count-badge" id="count-hecho">0</span></div>
         <div class="cards-container" id="container-hecho"></div>
       </div>
 
@@ -106,39 +116,23 @@
         🚨 Panel de Alertas & Radar
       </div>
 
-      <div id="alert-list-container" style="display: flex; flex-direction: column; gap: 10px;">
-        <!-- Se llena dinámicamente con las alertas -->
+      <div id="alert-list-container" style="display: flex; flex-direction: column; gap: 12px;">
+        <!-- Alertas dinámicas -->
       </div>
     </div>
 
   </div>
 
-  <!-- Firebase Scripts -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <script>
-  // Configuración de Firebase
-  const firebaseConfig = {
-    apiKey: "TU_API_KEY",
-    authDomain: "TU_PROJECT_ID.firebaseapp.com",
-    projectId: "TU_PROJECT_ID",
-    storageBucket: "TU_PROJECT_ID.appspot.com",
-    messagingSenderId: "TU_MESSAGING_SENDER_ID",
-    appId: "TU_APP_ID"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  // Cliente de autenticación de Google Cloud
   const CLIENT_ID = '105323188709-uo5bk2sc46g5bqbvbjgvsl0iuopj2jq1.apps.googleusercontent.com';
   const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.student-submissions.me.readonly';
 
   let tokenClient;
   let tareasReales = [];
+  let fechasManuales = JSON.parse(localStorage.getItem('fechasManualesClassroom')) || {};
+  let tareasDescartadas = JSON.parse(localStorage.getItem('tareasDescartadasClassroom')) || [];
 
   function iniciarGoogleAuth() {
     tokenClient = google.accounts.oauth2.initTokenClient({
@@ -167,7 +161,6 @@
 
   async function cargarTareasDesdeClassroom(token) {
     try {
-      // 1. Obtener los cursos donde estás inscrita
       const resCursos = await fetch('https://classroom.googleapis.com/v1/courses?studentId=me&courseStates=ACTIVE', {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -182,7 +175,6 @@
       if (dataCursos.courses && dataCursos.courses.length > 0) {
         for (const curso of dataCursos.courses) {
           try {
-            // 2. Obtener tareas de cada curso
             const resTareas = await fetch(`https://classroom.googleapis.com/v1/courses/${curso.id}/courseWork`, {
               headers: { Authorization: `Bearer ${token}` }
             });
@@ -194,28 +186,29 @@
               for (const tarea of dataTareas.courseWork) {
                 let estado = 'PENDIENTE';
 
-                // 3. Obtener estado de entrega del estudiante
                 try {
-                  const resEstado = await fetch(`https://classroom.googleapis.com/v1/courses/${curso.id}/courseWork/${tarea.id}/studentSubmissions?studentId=me`, {
+                  const resSubmissions = await fetch(`https://classroom.googleapis.com/v1/courses/${curso.id}/courseWork/${tarea.id}/studentSubmissions`, {
                     headers: { Authorization: `Bearer ${token}` }
                   });
-
-                  if (resEstado.ok) {
-                    const dataEstado = await resEstado.json();
-                    if (dataEstado.studentSubmissions && dataEstado.studentSubmissions.length > 0) {
-                      const st = dataEstado.studentSubmissions[0].state;
+                  if (resSubmissions.ok) {
+                    const dataSub = await resSubmissions.json();
+                    if (dataSub.studentSubmissions && dataSub.studentSubmissions.length > 0) {
+                      const st = dataSub.studentSubmissions[0].state;
                       if (st === 'TURNED_IN' || st === 'RETURNED') {
                         estado = 'ENTREGADO';
                       }
                     }
                   }
-                } catch (errSub) {
-                  console.warn(`No se pudo leer la entrega para la tarea ${tarea.id}:`, errSub);
+                } catch (eSub) {
+                  console.warn("No se pudo verificar estado de entrega:", eSub);
                 }
 
                 let fechaObj = null;
-                if (tarea.dueDate) {
-                  fechaObj = new Date(tarea.dueDate.year, tarea.dueDate.month - 1, tarea.dueDate.day);
+                if (fechasManuales[tarea.id]) {
+                  const partes = fechasManuales[tarea.id].split('-');
+                  fechaObj = new Date(partes[0], partes[1] - 1, partes[2], 23, 59, 59);
+                } else if (tarea.dueDate) {
+                  fechaObj = new Date(tarea.dueDate.year, tarea.dueDate.month - 1, tarea.dueDate.day, 23, 59, 59);
                 }
 
                 tareasReales.push({
@@ -225,13 +218,12 @@
                   color: '#3498db',
                   fechaObjeto: fechaObj,
                   estadoClassroom: estado,
-                  creadoHaceDias: Math.floor((new Date() - new Date(tarea.creationTime)) / (1000 * 60 * 60 * 24)),
                   descripcion: tarea.description || ''
                 });
               }
             }
           } catch (errCurso) {
-            console.warn(`Error procesando las tareas del curso ${curso.name}:`, errCurso);
+            console.warn(`Error procesando curso ${curso.name}:`, errCurso);
           }
         }
       }
@@ -241,6 +233,37 @@
       console.error("Detalle del error:", e);
       alert("Error al sincronizar con Classroom: " + e.message);
     }
+  }
+
+  function guardarFechaManual(tareaId) {
+    const inputDate = document.getElementById(`date-input-${tareaId}`);
+    if (inputDate && inputDate.value) {
+      fechasManuales[tareaId] = inputDate.value;
+      localStorage.setItem('fechasManualesClassroom', JSON.stringify(fechasManuales));
+
+      const partes = inputDate.value.split('-');
+      const tarea = tareasReales.find(t => t.id === tareaId);
+      if (tarea) {
+        tarea.fechaObjeto = new Date(partes[0], partes[1] - 1, partes[2], 23, 59, 59);
+      }
+      renderizarTablero();
+    } else {
+      alert("Por favor selecciona una fecha válida.");
+    }
+  }
+
+  function descartarTarea(tareaId) {
+    if (!tareasDescartadas.includes(tareaId)) {
+      tareasDescartadas.push(tareaId);
+      localStorage.setItem('tareasDescartadasClassroom', JSON.stringify(tareasDescartadas));
+      renderizarTablero();
+    }
+  }
+
+  function restaurarDescartes() {
+    tareasDescartadas = [];
+    localStorage.removeItem('tareasDescartadasClassroom');
+    renderizarTablero();
   }
 
   function renderizarTablero() {
@@ -257,59 +280,171 @@
     cAlertas.innerHTML = '';
 
     let countSinFecha = 0, countProximas = 0, countManana = 0, countHecho = 0;
+    let alertasRadar = [];
+
     const hoy = new Date();
-    hoy.setHours(0,0,0,0);
+    const hoyInicio = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+    const mananaFin = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 1, 23, 59, 59);
 
-    tareasReales.forEach(tarea => {
-      const card = document.createElement('div');
-      card.className = 'card';
-      
-      let htmlTarjeta = `
-        <span class="card-materia" style="background-color: ${tarea.color}">${tarea.materia}</span>
-        <div class="card-title">${tarea.titulo}</div>
-      `;
+    // Filtrar tareas no descartadas
+    const tareasActivas = tareasReales.filter(t => !tareasDescartadas.includes(t.id));
 
+    // Agrupar tareas por columna
+    const arrSinFecha = [];
+    const arrProximas = [];
+    const arrManana = [];
+    const arrHecho = [];
+
+    tareasActivas.forEach(tarea => {
       if (tarea.estadoClassroom === 'ENTREGADO') {
-        htmlTarjeta += `<div class="card-meta">Status: ✅ Entregado</div>`;
-        card.innerHTML = htmlTarjeta;
-        cHecho.appendChild(card);
-        countHecho++;
+        arrHecho.push(tarea);
       } else if (!tarea.fechaObjeto) {
-        htmlTarjeta += `<div class="card-meta">Sin fecha límite asignada</div>`;
-        card.innerHTML = htmlTarjeta;
-        cSinFecha.appendChild(card);
-        countSinFecha++;
+        arrSinFecha.push(tarea);
+      } else if (tarea.fechaObjeto < hoyInicio) {
+        // Vencida -> Va a Sin Fecha / Revisar para reprogramar o descartar
+        arrSinFecha.push({ ...tarea, esVencida: true });
+        alertasRadar.push({
+          tipo: 'VENCIDA',
+          titulo: tarea.titulo,
+          materia: tarea.materia,
+          fecha: tarea.fechaObjeto
+        });
+      } else if (tarea.fechaObjeto <= mananaFin) {
+        arrManana.push(tarea);
+        alertasRadar.push({
+          tipo: 'URGENTE',
+          titulo: tarea.titulo,
+          materia: tarea.materia,
+          fecha: tarea.fechaObjeto
+        });
       } else {
-        const diffTiempo = tarea.fechaObjeto - hoy;
-        const diffDias = Math.ceil(diffTiempo / (1000 * 60 * 60 * 24));
-        const fechaTexto = tarea.fechaObjeto.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
-
-        htmlTarjeta += `<div class="card-meta">📅 Entrega: ${fechaTexto}</div>`;
-        card.innerHTML = htmlTarjeta;
-
-        if (diffDias <= 1) {
-          cManana.appendChild(card);
-          countManana++;
-        } else {
-          cProximas.appendChild(card);
-          countProximas++;
-        }
+        arrProximas.push(tarea);
       }
     });
 
+    // Ordenar próximas por fecha ascendente (las más cercanas primero)
+    arrProximas.sort((a, b) => a.fechaObjeto - b.fechaObjeto);
+
+    // Renderizar Sin Fecha / Vencidas
+    arrSinFecha.forEach(tarea => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      let htmlTarjeta = `<span class="card-materia" style="background-color: ${tarea.color}">${tarea.materia}</span><div class="card-title">${tarea.titulo}</div>`;
+
+      if (tarea.esVencida) {
+        const fechaTexto = tarea.fechaObjeto.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+        htmlTarjeta += `<div class="card-meta card-vencida">⚠ Vencida (${fechaTexto})</div>`;
+      } else {
+        htmlTarjeta += `<div class="card-meta">Sin fecha límite asignada</div>`;
+      }
+
+      htmlTarjeta += `
+        <div class="date-assign-box">
+          <label for="date-input-${tarea.id}">${tarea.esVencida ? 'Reprogramar:' : 'Asignar fecha:'}</label>
+          <input type="date" id="date-input-${tarea.id}">
+          <div class="card-actions">
+            <button class="btn-asignar" onclick="guardarFechaManual('${tarea.id}')">💾 Guardar</button>
+            <button class="btn-descartar" onclick="descartarTarea('${tarea.id}')">🗑️ Descartar</button>
+          </div>
+        </div>
+      `;
+      card.innerHTML = htmlTarjeta;
+      cSinFecha.appendChild(card);
+      countSinFecha++;
+    });
+
+    // Renderizar Próximas
+    arrProximas.forEach(tarea => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      const fechaTexto = tarea.fechaObjeto.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+      card.innerHTML = `
+        <span class="card-materia" style="background-color: ${tarea.color}">${tarea.materia}</span>
+        <div class="card-title">${tarea.titulo}</div>
+        <div class="card-meta">📅 Entrega: ${fechaTexto}</div>
+        <div style="display:flex; justify-content: flex-end;">
+          <button class="btn-descartar" onclick="descartarTarea('${tarea.id}')">🗑️ Descartar</button>
+        </div>
+      `;
+      cProximas.appendChild(card);
+      countProximas++;
+    });
+
+    // Renderizar Para Mañana / Hoy
+    arrManana.forEach(tarea => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      const fechaTexto = tarea.fechaObjeto.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+      card.innerHTML = `
+        <span class="card-materia" style="background-color: ${tarea.color}">${tarea.materia}</span>
+        <div class="card-title">${tarea.titulo}</div>
+        <div class="card-meta" style="color: #e67e22; font-weight:700;">🔥 Entrega: ${fechaTexto}</div>
+        <div style="display:flex; justify-content: flex-end;">
+          <button class="btn-descartar" onclick="descartarTarea('${tarea.id}')">🗑️ Descartar</button>
+        </div>
+      `;
+      cManana.appendChild(card);
+      countManana++;
+    });
+
+    // Renderizar Hecho
+    arrHecho.forEach(tarea => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <span class="card-materia" style="background-color: ${tarea.color}">${tarea.materia}</span>
+        <div class="card-title">${tarea.titulo}</div>
+        <div class="card-meta">Status: ✅ Entregado</div>
+      `;
+      cHecho.appendChild(card);
+      countHecho++;
+    });
+
+    // Actualizar badges
     document.getElementById('count-sin-fecha').innerText = countSinFecha;
     document.getElementById('count-proximas').innerText = countProximas;
     document.getElementById('count-manana').innerText = countManana;
     document.getElementById('count-hecho').innerText = countHecho;
 
-    if (tareasReales.length === 0) {
-      cAlertas.innerHTML = '<div class="alert-item"><div class="alert-item-desc">No se encontraron tareas o la lista está vacía.</div></div>';
+    // Poblar Panel de Alertas y Radar
+    if (alertasRadar.length > 0) {
+      alertasRadar.forEach(alerta => {
+        const item = document.createElement('div');
+        item.className = 'alert-item';
+        const fechaTxt = alerta.fecha.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+        
+        if (alerta.tipo === 'VENCIDA') {
+          item.innerHTML = `
+            <div class="alert-item-title">⚠ Tarea Vencida</div>
+            <div class="alert-item-desc"><strong>${alerta.materia}</strong>: ${alerta.titulo} (${fechaTxt})</div>
+          `;
+        } else {
+          item.style.borderLeftColor = '#e67e22';
+          item.style.background = '#fffaf0';
+          item.innerHTML = `
+            <div class="alert-item-title" style="color:#d35400;">🔥 Entrega Inminente</div>
+            <div class="alert-item-desc"><strong>${alerta.materia}</strong>: ${alerta.titulo} (${fechaTxt})</div>
+          `;
+        }
+        cAlertas.appendChild(item);
+      });
+    } else {
+      cAlertas.innerHTML = '<div class="alert-item" style="border-left-color:#2ecc71; background:#f0fff4;"><div class="alert-item-title" style="color:#27ae60;">✨ Todo al día</div><div class="alert-item-desc">No tienes alertas ni entregas urgentes acumuladas.</div></div>';
     }
+
+    // Estadísticas del Radar
+    const statsDiv = document.createElement('div');
+    statsDiv.className = 'radar-stats';
+    statsDiv.innerHTML = `
+      <div class="radar-stats-title">📊 Resumen del Radar</div>
+      <div>• Tareas descartadas/ocultas: <strong>${tareasDescartadas.length}</strong></div>
+      <div>• Entregadas con éxito: <strong>${countHecho}</strong></div>
+      ${tareasDescartadas.length > 0 ? '<button onclick="restaurarDescartes()" style="margin-top:8px; padding:4px 8px; font-size:0.75rem; cursor:pointer;">Restaurar descartes</button>' : ''}
+    `;
+    cAlertas.appendChild(statsDiv);
   }
 
   window.onload = iniciarGoogleAuth;
 </script>
 </body>
 </html>
-
-
